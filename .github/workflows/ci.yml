@@ -1,0 +1,37 @@
+---
+# name -> Le nom affiché dans GitHub Action
+name: CI/CD Pipeline
+
+# on -> Quand le pipeline se déclenche.
+on:
+  push:
+    branches:
+      - "**" # Déclencher le pipeline sur toutes les branches
+  pull_request:
+    branches:
+      - main # Déclencher le pipeline sur toutes les PR vers main
+
+# job -> Les tâches à exécuter
+jobs:
+  lint: # JOB1 : Vérifier que le code est valide, compile et est de qualité. C'est le job le plus basique. Standardisement appelé "lint"
+    runs-on: ubuntu-latest # Sur quel OS le pipeline tourne. Par défaut, GitHub Actions démarre sur une machine Ubuntu vierge.
+    steps: # Les étapes du job
+
+      - name: Checkout code # Nom du step dans le job
+        uses: actions/checkout@v4 # Action créée et maintenue par Github pour cloner un dépôt git sur la machine ubuntu qui test le code. @v4 est la version de l'outil l'action.
+
+      - name: Setup Node.Js # Nom du step dans le job
+        uses: actions/setup-node@v4 # Action créée et maintenue par Github pour installer Node.js sur la machine ubuntu qui test le code.
+        with:
+          node-version: "20"
+
+      - name: Install dependencies # Nom du step dans le job
+        working-directory: app # Spécifie le répertoire ou aller chercher le fichier package.json
+        run: npm install # Exécute la commande pour download la dépendances de Node.js dont on a besoin en les récupérant dans le fichier package.json
+
+      - name: Build check # Nom du step dans le job
+        working-directory: app # Spécifie le répertoire ou aller chercher le fichier le code sources à tester
+        env: # Variables d'environnements
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY}} # Clé qui stocke la variable de la variable du secret. Secret ajouté sur GitHub dans "Settings → Secrets and variables"
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID}} # Clé qui stocke la variable de la variable du secret. Secret ajouté sur GitHub dans "Settings → Secrets and variables"
+        run: npm run build # Exécute la commande pour vérifier que le code compile correctement en production
